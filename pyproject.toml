@@ -8,7 +8,7 @@ exclude = [
 pythonVersion = "3.9"
 pythonPlatform = "Linux"
 
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
 useLibraryCodeForTypes = true
 
 # diagnosticSeverityOverrides
@@ -27,7 +27,6 @@ extend-exclude = [
 ]
 
 line-length = 120
-fix = true
 ignore-init-module-imports = true
 
 # Assume Python 3.9
@@ -59,6 +58,11 @@ quote-style = "single"
 docstring-code-format = true
 # Use tabs instead of 4 space indentation.
 indent-style = "tab"
+
+[tool.isort]
+profile = "hug"
+py_version = 39
+line_length = 120
 
 [tool.yapf]
 based_on_style = "facebook"
