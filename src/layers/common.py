@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -22,7 +22,7 @@ class ConvModule(nn.Module):
       out_channels: int,
       kernel_size: int,
       stride: int,
-      act_type: str,
+      act_type: Optional[str],
       padding: Optional[int] = None,
       groups: int = 1,
       bias: bool = False
@@ -171,7 +171,11 @@ class SPPFModule(nn.Module):
         https://github.com/ultralytics/yolov5/blob/4878541d43abce1ad7c670b7b8885e5dc8ddaeef/models/common.py#L242
     """
     def __init__(
-      self, in_channels: int, out_channels: int, kernel_size: int = 5, block: nn.Module = ConvBNReLU
+      self,
+      in_channels: int,
+      out_channels: int,
+      kernel_size: int = 5,
+      block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
         super().__init__()
         hidden_channels = in_channels // 2
@@ -191,7 +195,11 @@ class SPPFModule(nn.Module):
 class SimSPPF(nn.Module):
     """Simplified SPPF with ReLU activation"""
     def __init__(
-      self, in_channels: int, out_channels: int, kernel_size: int = 5, block: nn.Module = ConvBNReLU
+      self,
+      in_channels: int,
+      out_channels: int,
+      kernel_size: int = 5,
+      block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
@@ -203,7 +211,11 @@ class SimSPPF(nn.Module):
 class SPPF(nn.Module):
     """SPPF module with SiLU activation"""
     def __init__(
-      self, in_channels: int, out_channels: int, kernel_size: int = 5, block: nn.Module = ConvBNSiLU
+      self,
+      in_channels: int,
+      out_channels: int,
+      kernel_size: int = 5,
+      block: Callable[..., nn.Module] = ConvBNSiLU
     ) -> None:
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
@@ -223,7 +235,7 @@ class CSPSPPFModule(nn.Module):
       out_channels: int,
       kernel_size: int,
       hidden_ratio: float = 0.5,
-      block: nn.Module = ConvBNReLU
+      block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
         super().__init__()
         hidden_channels = int(in_channels * hidden_ratio)
@@ -256,7 +268,7 @@ class SimCSPSPPF(nn.Module):
       out_channels: int,
       kernel_size: int = 5,
       hidden_ratio: float = 0.5,
-      block: nn.Module = ConvBNReLU
+      block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
         super().__init__()
         self.cspsppf = CSPSPPFModule(
@@ -275,7 +287,7 @@ class CSPSPPF(nn.Module):
       out_channels: int,
       kernel_size: int = 5,
       hidden_ratio: float = 0.5,
-      block: nn.Module = ConvBNSiLU
+      block: Callable[..., nn.Module] = ConvBNSiLU
     ) -> None:
         super().__init__()
         self.cspsppf = CSPSPPFModule(
@@ -321,9 +333,9 @@ class RepVGGBlock(nn.Module):
         self.deploy = deploy
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.kernel_size = kernel_size
         self.stride = stride
-        self.groups = groups
-        self.dilation = dilation
+        self.padding = padding
         
         if use_se:
             raise NotImplementedError
@@ -378,24 +390,31 @@ class RepVGGBlock(nn.Module):
         channels = self.in_channels
         groups = self.groups
         kernel_size = avgp.kernel_size
+        if isinstance(kernel_size, (tuple, list)):
+            assert len(kernel_size) == 2
+            assert kernel_size[0] == kernel_size[1]
+            kernel_size = kernel_size[0]
         input_dim = channels // groups
-        k = torch.zeros((channels, input_dim, kernel_size, kernel_size))
+        k = torch.zeros(channels, input_dim, kernel_size, kernel_size)
         k[np.arange(channels), np.tile(np.arange(input_dim), groups), :, :] = 1. / kernel_size ** 2
         return k
     
-    def _pad_1x1_to_3x3_tensor(self, kernel1x1: torch.Tensor) -> Union[int, torch.Tensor]:
+    def _pad_1x1_to_3x3_tensor(self, kernel1x1: torch.Tensor) -> torch.Tensor:
         if kernel1x1 is None:
-            return 0
+            return torch.tensor(0)
         else:
             return F.pad(kernel1x1, [1, 1, 1, 1])
     
     def _fuse_bn_tensor(self, branch: Optional[Union[ConvModule, nn.BatchNorm2d]]) -> Tuple[torch.Tensor, torch.Tensor]:
         if branch is None:
-            return
+            return torch.tensor(0), torch.tensor(0)
         if isinstance(branch, ConvModule):
             kernel = branch.conv.weight
-            bias = branch.conv.bias
-            return kernel, bias
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
         elif isinstance(branch, nn.BatchNorm2d):
             if not hasattr(self, 'id_tensor'):
                 input_dim = self.in_channels // self.groups
@@ -409,10 +428,10 @@ class RepVGGBlock(nn.Module):
             gamma = branch.weight
             beta = branch.bias
             eps = branch.eps
-            assert running_var is not None
-            std = (running_var + eps).sqrt()
-            t = (gamma / std).reshape(-1, 1, 1, 1)
-            return kernel * t, beta - running_mean*gamma/std
+        assert running_var is not None
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean*gamma/std
     
     def reparameterize(self):
         if hasattr(self, 'rbr_reparam'):
@@ -422,9 +441,9 @@ class RepVGGBlock(nn.Module):
         self.rbr_reparam = nn.Conv2d(
           self.rbr_dense.conv.in_channels,
           self.rbr_dense.conv.out_channels,
-          kernel_size=self.rbr_dense.conv.kernel_size,
-          stride=self.rbr_dense.conv.stride,
-          padding=self.rbr_dense.conv.padding,
+          kernel_size=self.kernel_size,
+          stride=self.stride,
+          padding=self.padding,
           dilation=self.rpbr_dense.conv.dilation,
           groups=self.rbre_dense.conv.groups,
           bias=True
@@ -446,7 +465,13 @@ class RepVGGBlock(nn.Module):
 
 class RepBlock(nn.Module):
     """RepBlock is a stage block with Rep-Style Basic Block"""
-    def __init__(self, in_channels: int, out_channels: int, num_block: int = 1, block: nn.Module = RepVGGBlock) -> None:
+    def __init__(
+      self,
+      in_channels: int,
+      out_channels: int,
+      num_block: int = 1,
+      block: Callable[..., nn.Module] = RepVGGBlock
+    ) -> None:
         super().__init__()
         self.conv1 = block(in_channels, out_channels)
         self.block = nn.Sequential(

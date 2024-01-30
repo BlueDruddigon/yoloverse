@@ -1,9 +1,9 @@
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
 
-from src.layers.common import ConvBNSiLU, CSPSPPF, RepBlock, RepVGGBlock, SimCSPSPPF, SimSPPF, SPPF
+from src.layers.common import CSPSPPF, SPPF, ConvBNSiLU, RepBlock, RepVGGBlock, SimCSPSPPF, SimSPPF
 
 
 class EfficientRep(nn.Module):
@@ -19,7 +19,7 @@ class EfficientRep(nn.Module):
       in_channels: int = 3,
       channels_list: Optional[List[int]] = None,
       num_repeats: Optional[List[int]] = None,
-      block: nn.Module = RepVGGBlock,
+      block: Callable[..., nn.Module] = RepVGGBlock,
       fuse_p2: bool = False,
       cspsppf: bool = False
     ) -> None:
@@ -57,7 +57,7 @@ class EfficientRep(nn.Module):
             self.blocks.append(layer)
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
-        outputs = []
+        outputs: List[torch.Tensor] = []
         x = self.stem(x)
         for idx, blk in enumerate(self.blocks):
             x = blk(x)
