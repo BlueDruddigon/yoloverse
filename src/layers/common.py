@@ -470,16 +470,71 @@ class RepBlock(nn.Module):
       in_channels: int,
       out_channels: int,
       num_block: int = 1,
-      block: Callable[..., nn.Module] = RepVGGBlock
+      block: Callable[..., nn.Module] = RepVGGBlock,
+      basic_block: Callable[..., nn.Module] = RepVGGBlock
     ) -> None:
         super().__init__()
         self.conv1 = block(in_channels, out_channels)
         self.block = nn.Sequential(
           *[block(out_channels, out_channels) for _ in range(num_block - 1)]
         ) if num_block > 1 else None
+        if block == BottleRep:
+            self.conv1 = BottleRep(in_channels, out_channels, basic_block=basic_block, weight=True)
+            self.block = nn.Sequential(
+              *[block(out_channels, out_channels, basic_block=basic_block, weight=True) for _ in range(num_block - 1)]
+            ) if num_block > 1 else None
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv1(x)
         if self.block is not None:
             x = self.block(x)
         return x
+
+
+class BottleRep(nn.Module):
+    def __init__(
+      self,
+      in_channels: int,
+      out_channels: int,
+      basic_block: Callable[..., nn.Module] = RepVGGBlock,
+      weight: bool = False
+    ) -> None:
+        super().__init__()
+        self.conv1 = basic_block(in_channels, out_channels)
+        self.conv2 = basic_block(out_channels, out_channels)
+        if in_channels == out_channels:
+            self.shortcut = True
+        else:
+            self.shortcut = False
+        if weight:
+            self.alpha = nn.Parameter(torch.ones(1))
+        else:
+            self.alpha = 1.
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.conv2(self.conv1(x))
+        return out + self.alpha * x if self.shortcut else out
+
+
+class BepC3(nn.Module):
+    def __init__(
+      self,
+      in_channels: int,
+      out_channels: int,
+      num_block: int = 1,
+      hidden_ratio: float = 0.5,
+      block: Callable[..., nn.Module] = RepVGGBlock
+    ) -> None:
+        super().__init__()
+        hidden_channels = int(out_channels * hidden_ratio)
+        self.cv1 = ConvBNReLU(in_channels, hidden_channels, kernel_size=1, stride=1)
+        self.cv2 = ConvBNReLU(in_channels, hidden_channels, kernel_size=1, stride=1)
+        self.cv3 = ConvBNReLU(hidden_channels * 2, out_channels, kernel_size=1, stride=1)
+        if block == ConvBNSiLU:
+            self.cv1 = ConvBNSiLU(in_channels, hidden_channels, kernel_size=1, stride=1)
+            self.cv2 = ConvBNSiLU(in_channels, hidden_channels, kernel_size=1, stride=1)
+            self.cv3 = ConvBNSiLU(hidden_channels * 2, out_channels, kernel_size=1, stride=1)
+        self.m = RepBlock(hidden_channels, hidden_channels, num_block=num_block, block=BottleRep, basic_block=block)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.cv3(torch.cat([self.cv1(x), self.m(self.cv2(x))], dim=1))
