@@ -34,13 +34,8 @@ target-version = "py39"
 
 [tool.ruff.lint]
 extend-ignore = [
-  "E201",
-  "E202",
   "E226",
   "E228",
-  "E731",
-  "E741",
-  "W293",
   "F401",
   "F403"
 ]
@@ -74,7 +69,6 @@ column_limit = 120
 continuation_indent_width = 2
 dedent_closing_brackets = true
 indent_width = 4
-indent_blank_lines = true
 join_multiple_lines = true
 spaces_around_power_operator = true
 spaces_around_dict_delimiters = false
