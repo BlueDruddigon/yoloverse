@@ -298,6 +298,15 @@ class CSPSPPF(nn.Module):
         return self.cspsppf(x)
 
 
+class Transpose(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 2, stride: int = 2) -> None:
+        super().__init__()
+        self.upsample_conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.upsample_conv(x)
+
+
 class RepVGGBlock(nn.Module):
     """
     RepVGGBlock is a basic Rep-Style block, including training and deploy status
