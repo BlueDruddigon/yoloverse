@@ -1,4 +1,3 @@
-# we'll implement Rep-PAN module for YOLOv6 in this video
 from typing import Callable, Optional, Sequence
 
 import torch
