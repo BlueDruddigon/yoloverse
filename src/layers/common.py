@@ -604,6 +604,7 @@ class RepBlock(nn.Module):
         ) if num_block > 1 else None
         if block == BottleRep:
             self.conv1 = BottleRep(in_channels, out_channels, basic_block=basic_block, weight=True)
+            num_block = num_block // 2
             self.block = nn.Sequential(
               *[block(out_channels, out_channels, basic_block=basic_block, weight=True) for _ in range(num_block - 1)]
             ) if num_block > 1 else None
