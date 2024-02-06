@@ -7,7 +7,7 @@ from src.layers.common import CSPSPPF, SPPF, BepC3, ConvBNSiLU, RepBlock, RepVGG
 
 
 class EfficientRep(nn.Module):
-    """EfficientRep Backbone
+    """EfficientRep Backbone.
     EfficientRep is handcrafted by hardware-aware neural network design.
     With Rep-Style structure, EfficientRep is friendly to high-computation hardware(e.g. GPU).
     """
@@ -23,6 +23,15 @@ class EfficientRep(nn.Module):
       fuse_p2: bool = False,
       cspsppf: bool = False
     ) -> None:
+        """Initializes the EfficientRep backbone.
+
+        :param in_channels: number of input channels. default: 3
+        :param channels_list: list of channel sizes for each stage of the backbone. default: None
+        :param num_repeats: list of number of repetitions for each stage of the backbone. default: None
+        :param block: block to use in the backbone. default: RepVGGBlock
+        :param fuse_p2: whether to fuse P2 feature map with the backbone output. default: False
+        :param cspsppf: whether to use CSPSPPF or SimCSPSPPF for channel merging. default: False
+        """
         super().__init__()
 
         assert channels_list is not None
@@ -68,7 +77,7 @@ class EfficientRep(nn.Module):
 
 
 class EfficientRep6(nn.Module):
-    """EfficientRep+P6 Backbone
+    """EfficientRep+P6 Backbone.
     EfficientRep is handcrafted by hardware-aware neural network design.
     With Rep-Style structure, EfficientRep is friendly to high-computation hardware(e.g. GPU).
     """
@@ -83,6 +92,15 @@ class EfficientRep6(nn.Module):
       fuse_p2: bool = False,
       cspsppf: bool = False
     ) -> None:
+        """Initializes the EfficientRep6 backbone.
+
+        :param in_channels: number of input channels. default: 3
+        :param channels_list: list of channel sizes for each stage of the backbone. default: None
+        :param num_repeats: list of number of repetitions for each stage of the backbone. default: None
+        :param block: block to use in the backbone. default: RepVGGBlock
+        :param fuse_p2: whether to fuse P2 feature map with the backbone output. default: False
+        :param cspsppf: whether to use CSPSPPF or SimCSPSPPF for channel merging. default: False
+        """
         super().__init__()
 
         assert channels_list is not None
@@ -128,6 +146,10 @@ class EfficientRep6(nn.Module):
 
 
 class CSPBepBackbone(nn.Module):
+    """
+    CSPBepBackbone Module.
+    It's composed by BepC3 Unit instead of RepBlock in EfficientRep.
+    """
     num_stages: int = 4
 
     def __init__(
@@ -141,6 +163,17 @@ class CSPBepBackbone(nn.Module):
       cspsppf: bool = False,
       stage_block_type: str = 'BepC3'
     ) -> None:
+        """Initializes the CSPBep backbone.
+
+        :param in_channels: number of input channels. default: 3
+        :param channels_list: list of channel sizes for each stage. default: None
+        :param num_repeats: list of block quantities to repeat for each stage. default: None
+        :param block: block type to use in the backbone. default: RepVGGBlock
+        :param csp_ratio: ratio of hidden channels in the CSP block. default: 0.5
+        :param fuse_p2: whether to fuse P2 feature map. default: False
+        :param cspsppf: whether to use CSPSPPF block instead of SPPF block. default: False
+        :param stage_block_type: type of block to use in the stage. default: 'BepC3'
+        """
         super().__init__()
 
         assert channels_list is not None

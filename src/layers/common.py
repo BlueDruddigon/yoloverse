@@ -27,6 +27,17 @@ class ConvModule(nn.Module):
       groups: int = 1,
       bias: bool = False
     ) -> None:
+        """Initializes of ConvModule.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: conv's kernel size.
+        :param stride: conv's stride size.
+        :param act_type: activation type to use.
+        :param padding: zeros-padding size. default: None
+        :param groups: conv's groups. default: 1
+        :param bias: whether to use conv's bias. default: False
+        """
         super().__init__()
         if padding is None:
             padding = kernel_size // 2
@@ -64,6 +75,16 @@ class ConvBNReLU(nn.Module):
       groups: int = 1,
       bias: bool = False
     ) -> None:
+        """Initializes of ConvBNReLU.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: conv's kernel size. default: 3
+        :param stride: conv's stride size. default: 1
+        :param padding: zeros-padding size. default: None
+        :param groups: conv's groups. default: 1
+        :param bias: whether to use conv's bias. default: False
+        """
         super().__init__()
         self.block = ConvModule(
           in_channels,
@@ -92,6 +113,16 @@ class ConvBNSiLU(nn.Module):
       groups: int = 1,
       bias: bool = False
     ) -> None:
+        """Initializes of ConvBNSiLU.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: conv's kernel size. default: 3
+        :param stride: conv's stride size. default: 1
+        :param padding: zeros-padding size. default: None
+        :param groups: conv's groups. default: 1
+        :param bias: whether to use conv's bias. default: False
+        """
         super().__init__()
         self.block = ConvModule(
           in_channels,
@@ -120,6 +151,16 @@ class ConvBNHS(nn.Module):
       groups: int = 1,
       bias: bool = False
     ) -> None:
+        """Initializes of ConvBNHS.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: conv's kernel size. default: 3
+        :param stride: conv's stride size. default: 1
+        :param padding: zeros-padding size. default: None
+        :param groups: conv's groups. default: 1
+        :param bias: whether to use conv's bias. default: False
+        """
         super().__init__()
         self.block = ConvModule(
           in_channels,
@@ -148,6 +189,16 @@ class ConvBN(nn.Module):
       groups: int = 1,
       bias: bool = False
     ) -> None:
+        """Initializes of ConvBN.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: conv's kernel size. default: 3
+        :param stride: conv's stride size. default: 1
+        :param padding: zeros-padding size. default: None
+        :param groups: conv's groups. default: 1
+        :param bias: whether to use conv's bias. default: False
+        """
         super().__init__()
         self.block = ConvModule(
           in_channels,
@@ -177,6 +228,13 @@ class SPPFModule(nn.Module):
       kernel_size: int = 5,
       block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
+        """Initializes the SPPFModule.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size. default: 5
+        :param block: block to use in this module. default: ConvBNReLU
+        """
         super().__init__()
         hidden_channels = in_channels // 2
         self.cv1 = block(in_channels, hidden_channels, kernel_size=1, stride=1)
@@ -201,6 +259,13 @@ class SimSPPF(nn.Module):
       kernel_size: int = 5,
       block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
+        """Initializes the SimSPPF.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size. default: 5
+        :param block: block to use in this module. default: ConvBNReLU
+        """
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
 
@@ -217,6 +282,13 @@ class SPPF(nn.Module):
       kernel_size: int = 5,
       block: Callable[..., nn.Module] = ConvBNSiLU
     ) -> None:
+        """Initializes the SPPF.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size. default: 5
+        :param block: block to use in this module. default: ConvBNSiLU
+        """
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
 
@@ -237,6 +309,14 @@ class CSPSPPFModule(nn.Module):
       hidden_ratio: float = 0.5,
       block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
+        """Initializes the CSPSPPFModule.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size.
+        :param hidden_ratio: ratio for hidden channels in CSP. default: 0.5
+        :param block: block to use in this module. default: ConvBNReLU
+        """
         super().__init__()
         hidden_channels = int(in_channels * hidden_ratio)
         self.cv1 = block(in_channels, hidden_channels, kernel_size=1, stride=1)
@@ -270,6 +350,14 @@ class SimCSPSPPF(nn.Module):
       hidden_ratio: float = 0.5,
       block: Callable[..., nn.Module] = ConvBNReLU
     ) -> None:
+        """Initializes the SimCSPSPPF.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size. default: 5
+        :param hidden_ratio: ratio for hidden channels in CSP. default: 0.5
+        :param block: block to use in this module. default: ConvBNReLU
+        """
         super().__init__()
         self.cspsppf = CSPSPPFModule(
           in_channels, out_channels, kernel_size=kernel_size, hidden_ratio=hidden_ratio, block=block
@@ -289,6 +377,14 @@ class CSPSPPF(nn.Module):
       hidden_ratio: float = 0.5,
       block: Callable[..., nn.Module] = ConvBNSiLU
     ) -> None:
+        """Initializes the CSPSPPF.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: pooling layer's kernel size. default: 5
+        :param hidden_ratio: ratio for hidden channels in CSP. default: 0.5
+        :param block: block to use in this module. default: ConvBNSiLU
+        """
         super().__init__()
         self.cspsppf = CSPSPPFModule(
           in_channels, out_channels, kernel_size=kernel_size, hidden_ratio=hidden_ratio, block=block
@@ -299,7 +395,15 @@ class CSPSPPF(nn.Module):
 
 
 class Transpose(nn.Module):
+    """Normal Transpose, default for upsampling"""
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 2, stride: int = 2) -> None:
+        """Initializes the Transpose Layer.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param kernel_size: kernel size for `nn.ConvTranspose2d`. default: 2
+        :param stride: stride for `nn.ConvTranspose2d`. default: 2
+        """
         super().__init__()
         self.upsample_conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride)
 
@@ -409,12 +513,14 @@ class RepVGGBlock(nn.Module):
         return k
 
     def _pad_1x1_to_3x3_tensor(self, kernel1x1: torch.Tensor) -> torch.Tensor:
+        """method to pad 1x1 kernel tensor to 3x3 kernel tensor"""
         if kernel1x1 is None:
             return torch.tensor(0)
         else:
             return F.pad(kernel1x1, [1, 1, 1, 1])
 
     def _fuse_bn_tensor(self, branch: Optional[Union[ConvModule, nn.BatchNorm2d]]) -> Tuple[torch.Tensor, torch.Tensor]:
+        """method to fuse BatchNorm layer to Conv layer"""
         if branch is None:
             return torch.tensor(0), torch.tensor(0)
         if isinstance(branch, ConvModule):
@@ -443,6 +549,7 @@ class RepVGGBlock(nn.Module):
         return kernel * t, beta - running_mean*gamma/std
 
     def reparameterize(self):
+        """method to switch from training mode to deploy mode"""
         if hasattr(self, 'rbr_reparam'):
             return
 
@@ -482,6 +589,14 @@ class RepBlock(nn.Module):
       block: Callable[..., nn.Module] = RepVGGBlock,
       basic_block: Callable[..., nn.Module] = RepVGGBlock
     ) -> None:
+        """Initializes the RepBlock.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param num_block: number of repeated blocks. default: 1
+        :param block: block to compose this module. default: RepVGGBlock
+        :param basic_block: basic block to use in `block`. default: RepVGGBlock
+        """
         super().__init__()
         self.conv1 = block(in_channels, out_channels)
         self.block = nn.Sequential(
@@ -501,6 +616,7 @@ class RepBlock(nn.Module):
 
 
 class BottleRep(nn.Module):
+    """Rep-Style Bottleneck Module"""
     def __init__(
       self,
       in_channels: int,
@@ -508,6 +624,13 @@ class BottleRep(nn.Module):
       basic_block: Callable[..., nn.Module] = RepVGGBlock,
       weight: bool = False
     ) -> None:
+        """Initializes the BottleRep module.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param basic_block: basic block to use in this module. default: RepVGGBlock
+        :param weight: whether to add weighted parameters for residual connections. default: False
+        """
         super().__init__()
         self.conv1 = basic_block(in_channels, out_channels)
         self.conv2 = basic_block(out_channels, out_channels)
@@ -526,6 +649,7 @@ class BottleRep(nn.Module):
 
 
 class BepC3(nn.Module):
+    """CSPStackRep Block"""
     def __init__(
       self,
       in_channels: int,
@@ -534,6 +658,14 @@ class BepC3(nn.Module):
       hidden_ratio: float = 0.5,
       block: Callable[..., nn.Module] = RepVGGBlock
     ) -> None:
+        """Initializes the BepC3 module.
+
+        :param in_channels: module's input channels.
+        :param out_channels: module's output channels.
+        :param num_block: number of repeated blocks. default: 1
+        :param hidden_ratio: ratio for hidden channels. default: 0.5
+        :param block: block to use in this module. default: RepVGGBlock
+        """
         super().__init__()
         hidden_channels = int(out_channels * hidden_ratio)
         self.cv1 = ConvBNReLU(in_channels, hidden_channels, kernel_size=1, stride=1)

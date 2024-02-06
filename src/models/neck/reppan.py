@@ -7,12 +7,22 @@ from src.layers.common import ConvBNReLU, RepBlock, RepVGGBlock, Transpose
 
 
 class RepPANNeck(nn.Module):
+    """RepPANNeck module.
+    EfficientRep is the default backbone of this model.
+    RepPANNeck has the balance of feature fusion ability and hardware efficiency.
+    """
     def __init__(
       self,
       channels_list: Optional[Sequence[int]] = None,
       num_repeats: Optional[Sequence[int]] = None,
       block: Callable[..., nn.Module] = RepVGGBlock
     ) -> None:
+        """Initializes the RepPANNeck module.
+
+        :param channels_list: list of channel sizes for each stage of the neck. default: None
+        :param num_repeats: list of number of repetitions for each stage of the neck. default: None
+        :param block: block to use in the neck. default: RepVGGBlock
+        """
         super().__init__()
 
         assert channels_list is not None
