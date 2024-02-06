@@ -44,10 +44,10 @@ class ConvModule(nn.Module):
             self.act = act_table[act_type]
         else:
             self.act = nn.Identity()
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.act(self.bn(self.conv(x)))
-    
+
     def forward_fuse(self, x: torch.Tensor) -> torch.Tensor:
         return self.act(self.conv(x))
 
@@ -75,7 +75,7 @@ class ConvBNReLU(nn.Module):
           groups=groups,
           bias=bias
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.block(x)
 
@@ -103,7 +103,7 @@ class ConvBNSiLU(nn.Module):
           groups=groups,
           bias=bias
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.block(x)
 
@@ -131,7 +131,7 @@ class ConvBNHS(nn.Module):
           groups=groups,
           bias=bias
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.block(x)
 
@@ -159,7 +159,7 @@ class ConvBN(nn.Module):
           groups=groups,
           bias=bias
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.block(x)
 
@@ -182,7 +182,7 @@ class SPPFModule(nn.Module):
         self.cv1 = block(in_channels, hidden_channels, kernel_size=1, stride=1)
         self.cv2 = block(hidden_channels * 4, out_channels, kernel_size=1, stride=1)
         self.m = nn.MaxPool2d(kernel_size=kernel_size, stride=1, padding=kernel_size // 2)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.cv1(x)
         with warnings.catch_warnings():
@@ -203,7 +203,7 @@ class SimSPPF(nn.Module):
     ) -> None:
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.sppf(x)
 
@@ -219,7 +219,7 @@ class SPPF(nn.Module):
     ) -> None:
         super().__init__()
         self.sppf = SPPFModule(in_channels, out_channels, kernel_size=kernel_size, block=block)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.sppf(x)
 
@@ -243,12 +243,12 @@ class CSPSPPFModule(nn.Module):
         self.cv2 = block(in_channels, hidden_channels, kernel_size=1, stride=1)
         self.cv3 = block(hidden_channels, hidden_channels, kernel_size=3, stride=1)
         self.cv4 = block(hidden_channels, hidden_channels, kernel_size=1, stride=1)
-        
+
         self.m = nn.MaxPool2d(kernel_size=kernel_size, stride=1, padding=kernel_size // 2)
         self.cv5 = block(4 * hidden_channels, hidden_channels, kernel_size=1, stride=1)
         self.cv6 = block(hidden_channels, hidden_channels, kernel_size=3, stride=1)
         self.cv7 = block(2 * hidden_channels, out_channels, kernel_size=1, stride=1)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x1 = self.cv4(self.cv3(self.cv1(x)))
         y0 = self.cv2(x)
@@ -274,7 +274,7 @@ class SimCSPSPPF(nn.Module):
         self.cspsppf = CSPSPPFModule(
           in_channels, out_channels, kernel_size=kernel_size, hidden_ratio=hidden_ratio, block=block
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.cspsppf(x)
 
@@ -293,7 +293,7 @@ class CSPSPPF(nn.Module):
         self.cspsppf = CSPSPPFModule(
           in_channels, out_channels, kernel_size=kernel_size, hidden_ratio=hidden_ratio, block=block
         )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.cspsppf(x)
 
@@ -302,7 +302,7 @@ class Transpose(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int = 2, stride: int = 2) -> None:
         super().__init__()
         self.upsample_conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.upsample_conv(x)
 
@@ -345,14 +345,14 @@ class RepVGGBlock(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
-        
+
         if use_se:
             raise NotImplementedError
         else:
             self.se = nn.Identity()
-        
+
         self.act = nn.ReLU() if use_act else nn.Identity()
-        
+
         if deploy:
             self.rbr_reparam = nn.Conv2d(
               in_channels,
@@ -378,23 +378,23 @@ class RepVGGBlock(nn.Module):
             self.rbr_1x1 = ConvModule(
               in_channels, out_channels, kernel_size=1, stride=stride, act_type=None, padding=0, groups=groups
             )
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if hasattr(self, 'rbreparam'):
             return self.act(self.se(self.rbr_reparam(x)))
-        
+
         identity_out = 0
         if self.rbr_identity is not None:
             identity_out = self.rbr_identity(x)
-        
+
         return self.act(self.se(self.rbr_dense(x) + self.rbr_1x1(x) + identity_out))
-    
+
     def get_equivalent_kernel_bias(self) -> Tuple[torch.Tensor, torch.Tensor]:
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.rbr_dense)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.rbr_1x1)
         kernelid, biasid = self._fuse_bn_tensor(self.rbr_identity)
         return kernel3x3 + self._pad_1x1_to_3x3_tensor(kernel1x1) + kernelid, bias3x3 + bias1x1 + biasid
-    
+
     def _avg_to_3x3_tensor(self, avgp: nn.AvgPool2d) -> torch.Tensor:
         channels = self.in_channels
         groups = self.groups
@@ -407,13 +407,13 @@ class RepVGGBlock(nn.Module):
         k = torch.zeros(channels, input_dim, kernel_size, kernel_size)
         k[np.arange(channels), np.tile(np.arange(input_dim), groups), :, :] = 1. / kernel_size ** 2
         return k
-    
+
     def _pad_1x1_to_3x3_tensor(self, kernel1x1: torch.Tensor) -> torch.Tensor:
         if kernel1x1 is None:
             return torch.tensor(0)
         else:
             return F.pad(kernel1x1, [1, 1, 1, 1])
-    
+
     def _fuse_bn_tensor(self, branch: Optional[Union[ConvModule, nn.BatchNorm2d]]) -> Tuple[torch.Tensor, torch.Tensor]:
         if branch is None:
             return torch.tensor(0), torch.tensor(0)
@@ -441,11 +441,11 @@ class RepVGGBlock(nn.Module):
         std = (running_var + eps).sqrt()
         t = (gamma / std).reshape(-1, 1, 1, 1)
         return kernel * t, beta - running_mean*gamma/std
-    
+
     def reparameterize(self):
         if hasattr(self, 'rbr_reparam'):
             return
-        
+
         kernel, bias = self.get_equivalent_kernel_bias()
         self.rbr_reparam = nn.Conv2d(
           self.rbr_dense.conv.in_channels,
@@ -459,7 +459,7 @@ class RepVGGBlock(nn.Module):
         )
         self.rbr_reparam.weight.data = kernel
         self.rbr_reparam.bias.data = bias
-        
+
         for param in self.parameters():
             param.detach_()
         self.__delattr__('rbr_dense')
@@ -468,7 +468,7 @@ class RepVGGBlock(nn.Module):
             self.__delattr__('rbr_identity')
         if hasattr(self, 'id_tensor'):
             self.__delattr__('id_tensor')
-        
+
         self.deploy = True
 
 
@@ -492,7 +492,7 @@ class RepBlock(nn.Module):
             self.block = nn.Sequential(
               *[block(out_channels, out_channels, basic_block=basic_block, weight=True) for _ in range(num_block - 1)]
             ) if num_block > 1 else None
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv1(x)
         if self.block is not None:
@@ -519,7 +519,7 @@ class BottleRep(nn.Module):
             self.alpha = nn.Parameter(torch.ones(1))
         else:
             self.alpha = 1.
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.conv2(self.conv1(x))
         return out + self.alpha * x if self.shortcut else out
@@ -544,6 +544,6 @@ class BepC3(nn.Module):
             self.cv2 = ConvBNSiLU(in_channels, hidden_channels, kernel_size=1, stride=1)
             self.cv3 = ConvBNSiLU(hidden_channels * 2, out_channels, kernel_size=1, stride=1)
         self.m = RepBlock(hidden_channels, hidden_channels, num_block=num_block, block=BottleRep, basic_block=block)
-    
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.cv3(torch.cat([self.cv1(x), self.m(self.cv2(x))], dim=1))

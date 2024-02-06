@@ -11,9 +11,9 @@ class EfficientRep(nn.Module):
     EfficientRep is handcrafted by hardware-aware neural network design.
     With Rep-Style structure, EfficientRep is friendly to high-computation hardware(e.g. GPU).
     """
-    
+
     num_stages: int = 4
-    
+
     def __init__(
       self,
       in_channels: int = 3,
@@ -24,16 +24,16 @@ class EfficientRep(nn.Module):
       cspsppf: bool = False
     ) -> None:
         super().__init__()
-        
+
         assert channels_list is not None
         assert num_repeats is not None
         self.fuse_p2 = fuse_p2
-        
+
         self.stem = block(in_channels=in_channels, out_channels=channels_list[0], kernel_size=3, stride=2)
         channel_merge_layer = SPPF if block == ConvBNSiLU else SimSPPF
         if cspsppf:
             channel_merge_layer = CSPSPPF if block == ConvBNSiLU else SimCSPSPPF
-        
+
         self.blocks = nn.ModuleList()
         for i in range(self.num_stages):
             layer = nn.Sequential(
@@ -55,7 +55,7 @@ class EfficientRep(nn.Module):
               channel_merge_layer(in_channels=channels_list[i + 1], out_channels=channels_list[i + 1], kernel_size=5),
             )
             self.blocks.append(layer)
-    
+
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
         outputs: List[torch.Tensor] = []
         x = self.stem(x)
@@ -73,7 +73,7 @@ class EfficientRep6(nn.Module):
     With Rep-Style structure, EfficientRep is friendly to high-computation hardware(e.g. GPU).
     """
     num_stages: int = 5
-    
+
     def __init__(
       self,
       in_channels: int = 3,
@@ -84,16 +84,16 @@ class EfficientRep6(nn.Module):
       cspsppf: bool = False
     ) -> None:
         super().__init__()
-        
+
         assert channels_list is not None
         assert num_repeats is not None
         self.fuse_p2 = fuse_p2
-        
+
         self.stem = block(in_channels=in_channels, out_channels=channels_list[0], kernel_size=3, stride=2)
         channel_merge_layer = SPPF if block == ConvBNSiLU else SimSPPF
         if cspsppf:
             channel_merge_layer = CSPSPPF if block == ConvBNSiLU else SimCSPSPPF
-        
+
         self.blocks = nn.ModuleList()
         for i in range(self.num_stages):
             layer = nn.Sequential(
@@ -115,7 +115,7 @@ class EfficientRep6(nn.Module):
               channel_merge_layer(in_channels=channels_list[i + 1], out_channels=channels_list[i + 1], kernel_size=5),
             )
             self.blocks.append(layer)
-    
+
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
         outputs: List[torch.Tensor] = []
         x = self.stem(x)
@@ -129,7 +129,7 @@ class EfficientRep6(nn.Module):
 
 class CSPBepBackbone(nn.Module):
     num_stages: int = 4
-    
+
     def __init__(
       self,
       in_channels: int = 3,
@@ -142,21 +142,21 @@ class CSPBepBackbone(nn.Module):
       stage_block_type: str = 'BepC3'
     ) -> None:
         super().__init__()
-        
+
         assert channels_list is not None
         assert num_repeats is not None
         self.fuse_p2 = fuse_p2
-        
+
         if stage_block_type == 'BepC3':
             stage_block = BepC3
         else:
             raise NotImplementedError
-        
+
         self.stem = block(in_channels=in_channels, out_channels=channels_list[0], kernel_size=3, stride=2)
         channel_merge_layer = SPPF if block == ConvBNSiLU else SimSPPF
         if cspsppf:
             channel_merge_layer = CSPSPPF if block == ConvBNSiLU else SimCSPSPPF
-        
+
         self.blocks = nn.ModuleList()
         for i in range(self.num_stages):
             layer = nn.Sequential(
@@ -180,7 +180,7 @@ class CSPBepBackbone(nn.Module):
               channel_merge_layer(in_channels=channels_list[i + 1], out_channels=channels_list[i + 1], kernel_size=5)
             )
             self.blocks.append(layer)
-    
+
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
         outputs: List[torch.Tensor] = []
         x = self.stem(x)
