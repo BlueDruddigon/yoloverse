@@ -39,7 +39,8 @@ class EffiDeHead(nn.Module):
         self.grid = [torch.zeros(1)] * num_layers
         self.grid_cell_offset = 0.5
         self.grid_cell_size = 5.0
-        self.stride = torch.tensor([8, 16, 32])  # feature maps' strides
+        strides = [8, 16, 32]  # feature maps' strides computed during build
+        self.strides = torch.tensor(strides)
 
         # hyper-parameters
         self.prior_prob = 1e-2
@@ -120,7 +121,7 @@ class EffiDeHead(nn.Module):
         # generate anchor points
         anchor_points, stride_tensor = generate_anchors(
           x,
-          self.stride,
+          self.strides,
           grid_cell_size=self.grid_cell_size,
           grid_cell_offset=self.grid_cell_offset,
           device=x[0].device,
