@@ -17,7 +17,15 @@ class ModelEMA:
     This class is sensitive where it is initialized in the sequence of model init,
     GPU assignment and distributed training wrappers.
     """
-    def __init__(self, model: nn.Module, decay: float = 0.9999, updates: int = 0) -> None:
+    def __init__(
+      self, model: Union[Callable[..., nn.Module], DP, DDP], decay: float = 0.9999, updates: int = 0
+    ) -> None:
+        """EMA wrapper instantiate method.
+
+        :param model: model to maintain moving averages. it can be a DP or DDP wrapped model.
+        :param decay: the decay parameter. default: 0.9999
+        :param updates: optional count of number of updates applied. default: 0
+        """
         # FP32 EMA
         self.ema = deepcopy(model.module if is_parallel(model) else model).eval()
         self.updates = updates
@@ -26,6 +34,10 @@ class ModelEMA:
             param.requires_grad_(False)
 
     def update(self, model: Union[Callable[..., nn.Module], DP, DDP]) -> None:
+        """function to update exponential decay rules.
+
+        :param model: current stated model to update.
+        """
         with torch.no_grad():
             self.updates = self.updates + 1
             decay = self.decay(self.updates)
@@ -33,7 +45,7 @@ class ModelEMA:
             # model state_dict
             state_dict = model.module.state_dict() if is_parallel(model) else model.state_dict()
             for k, v in self.ema.state_dict().items():
-                if v.dtype.torch.is_floating_point:
+                if v.dtype.is_floating_point:
                     v = v * decay
                     v = v + (1-decay) * state_dict[k].detach()
 
@@ -43,6 +55,12 @@ class ModelEMA:
       include: Union[Tuple[str, ...], Tuple[()]] = (),
       exclude: Union[Tuple[str, ...], Tuple[()]] = ('process_group', 'reducer')
     ) -> None:
+        """update model's attribute to EMA's attribute
+
+        :param model: model to be updated
+        :param include: key item to be included. default: ()
+        :param exclude: key item to be excluded. default: ('process_group', 'reducer')
+        """
         copy_attr(self.ema, model, include=include, exclude=exclude)
 
 
@@ -52,6 +70,13 @@ def copy_attr(
   include: Union[Tuple[str, ...], Tuple[()]] = (),
   exclude: Union[Tuple[str, ...], Tuple[()]] = ()
 ) -> None:
+    """function to copy attributes from `b` to `a`
+
+    :param a: target object
+    :param b: source object
+    :param include: tuple of strings specifying attribute names to explicitly include for copying. default: ()
+    :param exclude: tuple of strings specifying attribute names to explicitly exclude from copying. default: ()
+    """
     for k, item in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith('_') or k in exclude:
             continue
