@@ -1,3 +1,4 @@
+"""Anchor Generation function for YOLO's head and Loss computation"""
 from typing import List, Sequence, Tuple, Union
 
 import torch
@@ -5,13 +6,24 @@ import torch
 
 def generate_anchors(
   feats: Sequence[torch.Tensor],
-  fpn_strides: Sequence[int],
+  fpn_strides: Union[torch.Tensor, Sequence[int]],
   grid_cell_size: float = 5.0,
   grid_cell_offset: float = 0.5,
   device: Union[str, torch.device] = 'cpu',
   is_eval: bool = False
 ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, List[int], torch.Tensor]]:
-    """Generate anchor points from fpn feature maps"""
+    """Generate anchor points from fpn feature maps
+
+    :param feats: FPN feature maps
+    :param fpn_strides: feature maps' strides
+    :param grid_cell_size: size of each grid cell. default: 5.0
+    :param grid_cell_offset: offset of grid cell. default: 0.5
+    :param device: device to use for computation. default: 'cpu'
+    :param is_eval: whether to use in evaluation mode. default: False
+    :return: a tuple of:
+        - anchor points and stride tensors if `is_eval` is True
+        - anchors tensor, anchor points tensor, a list contains number of anchors and stride tensor, otherwise
+    """
     anchors = []
     anchor_points = []
     stride_tensor = []
@@ -20,6 +32,7 @@ def generate_anchors(
 
     if is_eval:
         for i, stride in enumerate(fpn_strides):
+            stride = stride.item() if isinstance(stride, torch.Tensor) else int(stride)
             _, _, H, W = feats[i].shape
             shift_x = torch.arange(W, device=device) + grid_cell_offset
             shift_y = torch.arange(H, device=device) + grid_cell_offset
@@ -33,6 +46,7 @@ def generate_anchors(
         return anchor_points, stride_tensor
 
     for i, stride in enumerate(fpn_strides):
+        stride = stride.item() if isinstance(stride, torch.Tensor) else int(stride)
         _, _, H, W = feats[i].shape
         cell_half_size = grid_cell_size * stride * 0.5
         shift_x = (torch.arange(W, device=device) + grid_cell_offset) * stride
