@@ -19,6 +19,7 @@ reportOptionalMemberAccess = false
 reportUnboundVariable = false
 reportUnusedImport = false
 reportUnknownMemberType = false
+reportAssignmentType = false
 
 [tool.ruff]
 extend-exclude = [
