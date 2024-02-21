@@ -22,6 +22,7 @@ class ATSSAssigner(nn.Module):
         self.num_classes = num_classes
         self.bg_index = num_classes  # assign for background class usage
 
+    @torch.no_grad()
     def forward(
       self,
       anchor_bboxes: Tensor,
@@ -40,7 +41,7 @@ class ATSSAssigner(nn.Module):
         :param gt_labels: (Tensor[B, N, 1]) containing ground truth labels for each ground truth bbox
         :param mask_gt: (Tensor[B, N, 1]) indicating valid ground truth bboxes (1) and ignored ones (0)
         :param pred_bboxes: (Tensor[B, M, 4]) containing predicted bboxes from network (for soft label calculation)
-        :return: a tuple contains of 3 tensor:
+        :return: a tuple contains 4 tensors:
             - `target_labels` (Tensor[B, M]) Long tensor of assigned target labels (including background)
             - `target_bboxes` (Tensor[B, M, 4]) of assigned bboxes
             - `target_scores` (Tensor[B, M, C]) of one-hot encoded target class scores
@@ -49,6 +50,15 @@ class ATSSAssigner(nn.Module):
         self.bs = gt_bboxes.size(0)
         self.n_anchors = anchor_bboxes.size(0)
         self.n_max_bboxes = gt_bboxes.size(1)
+
+        if self.n_max_bboxes == 0:  # generate empty data if no ground-truth provided
+            device = gt_bboxes.device
+            return (
+              torch.full((self.bs, self.n_anchors), self.bg_index, device=device),
+              torch.zeros((self.bs, self.n_anchors, 4), device=device),
+              torch.zeros((self.bs, self.n_anchors, self.num_classes), device=device),
+              torch.zeros((self.bs, self.n_anchors), device=device),
+            )
 
         # compute iou between all bboxes and gts
         overlaps = calculate_iou(gt_bboxes.reshape(-1, 4), anchor_bboxes)
@@ -160,7 +170,7 @@ class ATSSAssigner(nn.Module):
         :param is_in_candidate: (Tensor[B, N, M]) indicating which anchor bboxes are candidates for each ground truthb boxes
         :param candidate_indices: (Tensor[B, N, k * l]) indices of the candidate bboxes
         :param overlaps: (Tensor[B, N, M]) overlap scores (e.g. IoU) between all ground truth bboxes and anchor bboxes
-        :return: a tuple of 2 tensor:
+        :return: a tuple of 2 tensors:
             - (Tensor[B, N, 1]) containing dynamic overlap thresholds for each ground truth bboxes
             - (Tensor[B, N, M]) containing filtered overlaps for candidate bboxes
         """
@@ -209,7 +219,7 @@ class ATSSAssigner(nn.Module):
         :param gt_bboxes: (Tensor[B, N, 4]) ground truth bboxes
         :param target_gt_index: (Tensor[B, M]) indicating the assigned ground truth bbox index for each anchor
         :param fg_mask: (Tensor[B, M]) indicating positive candidate assignments
-        :return: a tuple of 3 tensor:
+        :return: a tuple of 3 tensors:
             - `target_labels` (Tensor[B, M]) of assigned target labels (including background)
             - `target_bboxes` (Tensor[B, M, 4]) of assigned target bboxes
             - `target_scores` (Tensor[B, M, C]) of one-hot encoded target class scores
