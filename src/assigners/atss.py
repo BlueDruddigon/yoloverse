@@ -6,8 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 
-from src.assigners.utils import dist_calculate, select_candidates_in_gts, select_highest_overlaps
 from src.utils.iou import calculate_iou
+
+from .utils import dist_calculate, select_candidates_in_gts, select_highest_overlaps
 
 
 class ATSSAssigner(nn.Module):
