@@ -1,27 +1,30 @@
-# YOLOv6-N model
+# YOLOv6-M model
 model:
-  type: YOLOv6n
+  type: YOLOv6m
   pretrained: None
-  depth_multiple: 0.33
-  width_multiple: 0.25
+  depth_multiple: 0.60
+  width_multiple: 0.75
   backbone:
-    type: EfficientRep
+    type: CSPBepBackbone
     num_repeats: [1, 6, 12, 18, 6]
     out_channels: [64, 128, 256, 512, 1024]
+    csp_ratio: 2/3
     fuse_p2: True
-    cspsppf: True
   neck:
-    type: RepPANNeck
+    type: CSPRepPANNeck
     num_repeats: [12, 12, 12, 12]
     out_channels: [256, 128, 128, 256, 256, 512]
+    csp_ratio: 2/3
   head:
     type: EffiDeHead
     in_channels: [128, 256, 512]
     num_layers: 3
-    anchors_init: [[10, 13, 19, 19, 33, 23], [30, 61, 59, 59, 59, 119], [116, 90, 185, 185, 373, 326]]
+    begin_indices: 24
+    anchors: 3
+    anchors_init: [[10,13, 19,19, 33,23], [30,61, 59,59, 59,119], [116,90, 185,185, 373,326]]
     out_indices: [17, 20, 23]
     strides: [8, 16, 32]
     atss_warmup_epoch: 0
-    iou_type: 'siou'
+    iou_type: 'giou'
     use_dfl: False # set to `True` if you want to further train with distillation
     reg_max: 0 # set to `16` if you want to further train with distillation
