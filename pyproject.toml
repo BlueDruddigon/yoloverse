@@ -38,7 +38,8 @@ extend-ignore = [
   "E226",
   "E228",
   "F401",
-  "F403"
+  "F403",
+  "E731"
 ]
 
 [tool.ruff.lint.flake8-unused-arguments]
