@@ -680,3 +680,14 @@ class BepC3(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.cv3(torch.cat([self.cv1(x), self.m(self.cv2(x))], dim=1))
+
+
+def get_block(mode: str):
+    if mode == 'repvgg':
+        return RepVGGBlock
+    elif mode == 'conv_relu':
+        return ConvBNReLU
+    elif mode == 'conv_silu':
+        return ConvBNSiLU
+    else:
+        raise NotImplementedError(f'Undefined RepBlock choice for mode {mode}')
