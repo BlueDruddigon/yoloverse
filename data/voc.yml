@@ -1,0 +1,11 @@
+# please ensure that your custom dataset are put in same parent dir
+train: VOCdevkit/voc_07_12/images/train
+val: VOCdevkit/voc_07_12/images/val
+test: VOCdevkit/voc_07_12/images/val # optional
+
+# whether it is COCO dataset, only COCO dataset should be set to True
+is_coco: False
+
+# classes
+nc: 20 # number of classes
+names: ['aeroplane', 'bicycle', 'bird', 'board', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'] # class names

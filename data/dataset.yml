@@ -1,0 +1,11 @@
+# please ensure that your custom dataset are put in same parent dir
+train: ../custom/images/train
+val: ../custom/images/val
+test: ../custom/images/test # optional
+
+# whether it is COCO dataset, only COCO dataset should be set to True
+is_coco: False
+
+# classes
+nc: 20 # number of classes
+names: ['aeroplane', 'bicycle', 'bird', 'board', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'] # class names
