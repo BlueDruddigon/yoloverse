@@ -20,6 +20,7 @@ reportUnboundVariable = false
 reportUnusedImport = false
 reportUnknownMemberType = false
 reportAssignmentType = false
+reportAttributeAccessIssue = false
 
 [tool.ruff]
 extend-exclude = [
