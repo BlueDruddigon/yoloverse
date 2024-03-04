@@ -78,7 +78,7 @@ def select_highest_overlaps(
         - `fg_mask` (Tensor[B, M]) boolean tensor to track positive candidate assignments
         - `mask_positive` (Tensor[B, N, M]) the updated mask with highest overlaps
     """
-    fg_mask = mask_positive.sum(dim=-2)  # count positive assigments per anchor across gt bboxes
+    fg_mask = mask_positive.sum(dim=-2)  # count positive assignments per anchor across gt bboxes
     if fg_mask.max() > 1:  # check if any anchor has more than one positive assignment
         # identify anchors with multiple candidates
         mask_multiple_gts = (fg_mask.unsqueeze(1) > 1).repeat(1, n_max_bboxes, 1)
