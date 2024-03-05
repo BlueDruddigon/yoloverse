@@ -29,7 +29,11 @@ IMG_FORMATS = ['jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp', 'mpo', 'dng']
 VID_FORMATS = ['mp4', 'mov', 'avi', 'mkv']
 IMG_FORMATS.extend([f.upper() for f in IMG_FORMATS])
 VID_FORMATS.extend([f.upper() for f in VID_FORMATS])
+
+# Get CPU count for workers
 CPU_COUNT = os.cpu_count()
+assert CPU_COUNT is not None  # ensure CPU count is available
+
 # Get orientation exif tag
 for k, v in ExifTags.TAGS.items():
     if v == 'Orientation':
@@ -170,7 +174,6 @@ class TrainValDataset(Dataset):
         )
 
         # determine the number of threads to use
-        assert CPU_COUNT is not None  # ensure CPU count is available
         num_threads = min(16, max(1, CPU_COUNT - 1))  # use up to 16 threads, but not more than CPUs-1
 
         # load images using threads
@@ -368,7 +371,7 @@ class TrainValDataset(Dataset):
         # generate a hash based on label paths
         label_hash = self.get_hash(label_paths)
         # update the flag to check labels if label hash matched
-        if 'label_hash' not in cache_info or cache_info['label_hash'] != label_hash:
+        if 'label_hash' not in cache_info.keys() or cache_info['label_hash'] != label_hash:
             self.check_labels = True
 
         # check label formats if needed and update cache/image info
