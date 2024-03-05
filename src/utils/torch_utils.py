@@ -1,4 +1,21 @@
+from contextlib import contextmanager
+from typing import Generator
+
+import torch.distributed as dist
 import torch.nn as nn
+
+
+@contextmanager
+def torch_distributed_zero_first(local_rank: int) -> Generator:
+    """a context manager that ensures only the first process in a distributed training setup
+
+    :param local_rank: (int) the rank of the current process
+    """
+    if local_rank not in (-1, 0):
+        dist.barrier(device_ids=[local_rank])
+    yield
+    if local_rank == 0:  # master process
+        dist.barrier(device_ids=[0])
 
 
 def initialize_weights(model: nn.Module) -> None:
