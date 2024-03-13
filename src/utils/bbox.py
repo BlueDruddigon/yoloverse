@@ -46,3 +46,27 @@ def xywh2xyxy(bbox: torch.Tensor) -> torch.Tensor:
     bbox[..., 2] = bbox[..., 0] + bbox[..., 2]
     bbox[..., 3] = bbox[..., 1] + bbox[..., 3]
     return bbox
+
+
+def bbox_iou(bbox1: torch.Tensor, bbox2: torch.Tensor) -> torch.Tensor:
+    """calculates the IoU of two bounding boxes
+
+    :param bbox1: (Tensor) first bounding box, with coordinates (xmin, ymin, xmax, ymax) format
+    :param bbox2: (Tensor) second bounding box, with same coordinates format
+    :return: (Tensor) the IoU score of 2 bounding boxes
+    """
+    def bbox_area(bbox: torch.Tensor) -> torch.Tensor:
+        """calculates the area of a bounding box
+
+        :param bbox: (Tensor) bounding box with coordinates (xmin, ymin, xmax, ymax) format
+        :returns: (Tensor) the area of the bounding box
+        """
+        # formula: `Area = Width * Height`
+        return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+
+    area1 = bbox_area(bbox1)
+    area2 = bbox_area(bbox2)
+
+    # calculate intersection of 2 bounding boxes
+    inter = (torch.min(bbox1[:, None, 2:], bbox2[:, 2:])) - torch.max(bbox1[:, None, :2], bbox2[:, :2]).clamp(0).prod(2)
+    return inter / (area1[:, None] + area2 - inter)  # IoU score = `inter / (area1 + area2 - inter)`
