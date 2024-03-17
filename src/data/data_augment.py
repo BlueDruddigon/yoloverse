@@ -33,7 +33,7 @@ def augment_hsv(image: np.ndarray, hgain: float = 0.5, sgain: float = 0.5, vgain
 
 def letterbox(
   image: np.ndarray,
-  new_shape: Union[int, Tuple[int], Tuple[int, int]] = (640, 640),
+  new_shape: Union[int, List[int], Tuple[int, int]] = (640, 640),
   color: Tuple[int, int, int] = (114, 114, 114),
   auto: bool = True,
   scaleup: bool = True,
