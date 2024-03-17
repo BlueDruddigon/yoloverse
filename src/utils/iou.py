@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 from torch import Tensor
@@ -70,11 +70,7 @@ def calculate_iou(
 
 
 def bbox_overlaps(
-  boxes1: Tensor,
-  boxes2: Tensor,
-  mode: str = 'iou',
-  is_aligned: bool = False,
-  eps: Union[float, Tensor] = 1e-6
+  boxes1: Tensor, boxes2: Tensor, mode: str = 'iou', is_aligned: bool = False, eps: float | Tensor = 1e-6
 ) -> Tensor:
     """calculate overlaps between 2 set of bounding boxes.
     this is modified version of `mmdet.core.bbox.iou_calculators.iou2d_calculator.bbox_overlaps`,
