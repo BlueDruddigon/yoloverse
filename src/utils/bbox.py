@@ -48,6 +48,19 @@ def xywh2xyxy(bbox: torch.Tensor) -> torch.Tensor:
     return bbox
 
 
+def xyxy2xywh(bbox: torch.Tensor) -> torch.Tensor:
+    """convert bbox from xyxy to xywh format
+
+    :param bbox: a bounding box tensor to be converted.
+    :return: converted tensor.
+    """
+    bbox[..., 0] = (bbox[..., 0] + bbox[..., 2]) / 2
+    bbox[..., 1] = (bbox[..., 1] + bbox[..., 3]) / 2
+    bbox[..., 2] = bbox[..., 2] - bbox[..., 0]
+    bbox[..., 3] = bbox[..., 3] - bbox[..., 1]
+    return bbox
+
+
 def bbox_iou(bbox1: torch.Tensor, bbox2: torch.Tensor) -> torch.Tensor:
     """calculates the IoU of two bounding boxes
 
