@@ -2,12 +2,12 @@ import glob
 import math
 import os
 from pathlib import Path
-from typing import Sequence, Union
+from typing import Sequence
 
 from .logger import LOGGER
 
 
-def increment_name(path: Union[str, Path]) -> Path:
+def increment_name(path: str | Path) -> Path:
     """increments the name of a file or directory if it already exists
 
     :param path: (str | Path) the original path
@@ -44,11 +44,11 @@ def make_divisible(x: int, divisor: int) -> int:
 
 
 def check_image_size(
-  image_size: Union[int, Sequence[int]],
+  image_size: int | Sequence[int],
   stride: int = 32,
   floor: int = 0,
-  return_same_type: bool = True
-) -> Union[int, Sequence[int]]:
+  return_same_type: bool = True,
+) -> int | Sequence[int]:
     """check image size to be divisible by stride and not smaller than floor,
     and adjust the size if necessary
 

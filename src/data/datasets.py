@@ -7,7 +7,7 @@ import random
 import time
 from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -288,7 +288,7 @@ class TrainValDataset(Dataset):
         # return image and label tensors, the image path, and its shapes
         return torch.from_numpy(image), labels_out, self.image_paths[index], shapes
 
-    def get_images_labels(self, image_dirs: Union[List[str], str]) -> Tuple[List[str], np.ndarray]:
+    def get_images_labels(self, image_dirs: List[str] | str) -> Tuple[List[str], np.ndarray]:
         """gets image paths and corresponding labels, performing various checks and caching for efficiency
 
         :param image_dirs: (str | list) a list of image directory paths or single directory path
@@ -839,7 +839,7 @@ class LoadData:
         else:  # no video capture needed
             self.cap = None
 
-    def checkext(self, path: Union[str, int]) -> str:
+    def checkext(self, path: str | int) -> str:
         """determines the type of data source (image or video) based on input path and webcam flag
 
         :param path: (str | int) path to the file or the webcam address
@@ -860,7 +860,7 @@ class LoadData:
         self.count = 0  # reset the counter
         return self
 
-    def __next__(self) -> Tuple[np.ndarray, Union[str, int], Optional[cv2.VideoCapture]]:
+    def __next__(self) -> Tuple[np.ndarray, str | int, Optional[cv2.VideoCapture]]:
         """retrieves the next item from the dataset, handling both images and videos.
         this method is called when iterating over the dataset using a `for` loop.
         it fetches the next file from the list, checks its type, and returns the corresponding data (image or video frame).
@@ -892,7 +892,7 @@ class LoadData:
 
         return image, path, self.cap
 
-    def add_video(self, path: Union[str, int]) -> None:
+    def add_video(self, path: str | int) -> None:
         """initializes a video capture for a new video
 
         :param path: (str | int) path to the video file or webcam address

@@ -1,17 +1,17 @@
 """Anchor Generation function for YOLO's head and Loss computation"""
-from typing import List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple
 
 import torch
 
 
 def generate_anchors(
   feats: Sequence[torch.Tensor],
-  fpn_strides: Union[torch.Tensor, Sequence[int]],
+  fpn_strides: torch.Tensor | Sequence[int],
   grid_cell_size: float = 5.0,
   grid_cell_offset: float = 0.5,
-  device: Union[str, torch.device] = 'cpu',
+  device: str | torch.device = 'cpu',
   is_eval: bool = False
-) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, List[int], torch.Tensor]]:
+) -> Tuple[torch.Tensor, torch.Tensor] | Tuple[torch.Tensor, torch.Tensor, List[int], torch.Tensor]:
     """Generate anchor points from fpn feature maps
 
     :param feats: FPN feature maps

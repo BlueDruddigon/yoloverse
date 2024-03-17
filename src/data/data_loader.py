@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 import torch.distributed as dist
 from torch.utils.data import dataloader, distributed
@@ -53,7 +53,7 @@ def create_dataloader(
   path: str,
   img_size: int,
   batch_size: int,
-  stride: Union[float, int],
+  stride: float | int,
   hyp: Optional[Dict[str, float]] = None,
   augment: bool = False,
   check_images: bool = False,

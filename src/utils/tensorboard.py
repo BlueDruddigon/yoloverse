@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, List
 
 import numpy as np
 import torch
@@ -28,9 +28,7 @@ def write_tblog(writer: SummaryWriter, epoch: int, results: List[float], lrs: Li
     writer.add_scalar('x/lr2', lrs[2], epoch + 1)
 
 
-def write_tbimg(
-  writer: SummaryWriter, imgs: Union[np.ndarray, List[torch.Tensor]], step: int, type: str = 'train'
-) -> None:
+def write_tbimg(writer: SummaryWriter, imgs: np.ndarray | List[torch.Tensor], step: int, type: str = 'train') -> None:
     """writes images to TensorBoard
 
 	:param writer: (SummaryWriter) the TensorBoard SummaryWriter object

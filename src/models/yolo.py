@@ -1,5 +1,5 @@
 import math
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import torch
 import torch.nn as nn
@@ -33,7 +33,7 @@ class Model(nn.Module):
         # init weights
         initialize_weights(self)
 
-    def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, List[torch.Tensor]]]:
+    def forward(self, x: torch.Tensor) -> torch.Tensor | Tuple[torch.Tensor, List[torch.Tensor]]:
         export_mode = torch.onnx.is_in_onnx_export() or self.export
         x = self.backbone(x)
         x = self.neck(x)
@@ -115,5 +115,5 @@ def build_network(config: Config, channels: int, num_classes: int, num_layers: i
     return backbone, neck, head
 
 
-def build_model(cfg: Config, num_classes: int, device: Union[str, torch.device]) -> Model:
+def build_model(cfg: Config, num_classes: int, device: str | torch.device) -> Model:
     return Model(cfg, channels=3, num_classes=num_classes).to(device)

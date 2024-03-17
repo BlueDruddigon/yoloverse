@@ -1,9 +1,10 @@
 import math
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 from src.assigners.anchor_generator import generate_anchors
 from src.layers.common import ConvBNSiLU
@@ -14,7 +15,7 @@ class EffiDeHead(nn.Module):
     def __init__(
       self,
       num_classes: int = 80,
-      anchors: Union[int, Sequence[Sequence[int]]] = 1,
+      anchors: int | Sequence[Sequence[int]] = 1,
       num_layers: int = 3,
       inplace: bool = True,
       head_layers: Optional[nn.Sequential] = None,
@@ -88,9 +89,7 @@ class EffiDeHead(nn.Module):
           self.proj.view([1, self.reg_max + 1, 1, 1]).clone().detach(), requires_grad=False
         )
 
-    def forward(
-      self, x: List[torch.Tensor]
-    ) -> Union[Tuple[Sequence[torch.Tensor], torch.Tensor, torch.Tensor], torch.Tensor]:
+    def forward(self, x: List[Tensor]) -> Tuple[Sequence[Tensor], Tensor, Tensor] | Tensor:
         if self.training:
             cls_score_list = []
             reg_dist_list = []

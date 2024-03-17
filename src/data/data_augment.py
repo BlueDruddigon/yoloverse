@@ -1,6 +1,6 @@
 import math
 import random
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -33,7 +33,7 @@ def augment_hsv(image: np.ndarray, hgain: float = 0.5, sgain: float = 0.5, vgain
 
 def letterbox(
   image: np.ndarray,
-  new_shape: Union[int, List[int], Tuple[int, int]] = (640, 640),
+  new_shape: int | List[int] | Tuple[int, int] = (640, 640),
   color: Tuple[int, int, int] = (114, 114, 114),
   auto: bool = True,
   scaleup: bool = True,
@@ -155,7 +155,7 @@ def random_affine(
   translate: float = 0.1,
   scale: float = 0.1,
   shear: float = 10,
-  new_shape: Union[int, Tuple[int, int]] = (640, 640)
+  new_shape: int | Tuple[int, int] = (640, 640)
 ) -> Tuple[np.ndarray, np.ndarray]:
     """applies random affine transformations to an image and its bounding box labels
 
@@ -254,7 +254,7 @@ def get_transform_matrix(
 
 
 def mosaic_augmentation(
-  shape: Union[int, Tuple[int, int]],
+  shape: int | Tuple[int, int],
   images: List[np.ndarray],
   hs: List[int],
   ws: List[int],

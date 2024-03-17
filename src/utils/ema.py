@@ -1,6 +1,6 @@
 import math
 from copy import deepcopy
-from typing import Callable, Tuple, Union
+from typing import Callable, Tuple
 
 import torch
 import torch.nn as nn
@@ -17,9 +17,7 @@ class ModelEMA:
     This class is sensitive where it is initialized in the sequence of model init,
     GPU assignment and distributed training wrappers.
     """
-    def __init__(
-      self, model: Union[Callable[..., nn.Module], DP, DDP], decay: float = 0.9999, updates: int = 0
-    ) -> None:
+    def __init__(self, model: Callable[..., nn.Module] | DP | DDP, decay: float = 0.9999, updates: int = 0) -> None:
         """EMA wrapper instantiate method.
 
         :param model: model to maintain moving averages. it can be a DP or DDP wrapped model.
@@ -33,7 +31,7 @@ class ModelEMA:
         for param in self.ema.parameters():
             param.requires_grad_(False)
 
-    def update(self, model: Union[Callable[..., nn.Module], DP, DDP]) -> None:
+    def update(self, model: Callable[..., nn.Module] | DP | DDP) -> None:
         """function to update exponential decay rules.
 
         :param model: current stated model to update.
@@ -51,9 +49,9 @@ class ModelEMA:
 
     def update_attr(
       self,
-      model: Union[Callable[..., nn.Module], DP, DDP],
-      include: Union[Tuple[str, ...], Tuple[()]] = (),
-      exclude: Union[Tuple[str, ...], Tuple[()]] = ('process_group', 'reducer')
+      model: Callable[..., nn.Module] | DP | DDP,
+      include: Tuple[str, ...] | Tuple[()] = (),
+      exclude: Tuple[str, ...] | Tuple[()] = ('process_group', 'reducer')
     ) -> None:
         """update model's attribute to EMA's attribute
 
@@ -65,10 +63,7 @@ class ModelEMA:
 
 
 def copy_attr(
-  a: object,
-  b: object,
-  include: Union[Tuple[str, ...], Tuple[()]] = (),
-  exclude: Union[Tuple[str, ...], Tuple[()]] = ()
+  a: object, b: object, include: Tuple[str, ...] | Tuple[()] = (), exclude: Tuple[str, ...] | Tuple[()] = ()
 ) -> None:
     """function to copy attributes from `b` to `a`
 
@@ -84,11 +79,11 @@ def copy_attr(
             setattr(a, k, item)
 
 
-def is_parallel(model: Union[Callable[..., nn.Module], DP, DDP]) -> bool:
+def is_parallel(model: Callable[..., nn.Module] | DP | DDP) -> bool:
     """Return True if model's type is DP or DDP, else False"""
     return type(model) in (DP, DDP)
 
 
-def de_parallel(model: Union[Callable[..., nn.Module], DP, DDP]) -> Callable[..., nn.Module]:
+def de_parallel(model: Callable[..., nn.Module] | DP | DDP) -> Callable[..., nn.Module]:
     """De-parallelize a model. Return single-GPU model if model's type is DP or DDP"""
     return model.module if is_parallel(model) else model

@@ -1,7 +1,7 @@
 import os
 import os.path as osp
 import shutil
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -10,7 +10,7 @@ from src.utils.logger import LOGGER
 from src.utils.torch_utils import fuse_model
 
 
-def load_state_dict(weights: str, model: nn.Module, map_location: Optional[Union[str, torch.device]] = None):
+def load_state_dict(weights: str, model: nn.Module, map_location: Optional[str | torch.device] = None):
     """loads the state dictionary from a checkpoint file and assigns it to the model
 
     :param weights: (str) path to the checkpoint file
@@ -28,7 +28,7 @@ def load_state_dict(weights: str, model: nn.Module, map_location: Optional[Union
     return model
 
 
-def load_checkpoint(weights: str, map_location: Optional[Union[str, torch.device]] = None, fuse: bool = True):
+def load_checkpoint(weights: str, map_location: Optional[str | torch.device] = None, fuse: bool = True):
     """loads a checkpoint from the specified path
 
     :param weights: (str) path to the checkpoint file
