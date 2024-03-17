@@ -2,7 +2,7 @@ import glob
 import math
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import Sequence, Union
 
 from .logger import LOGGER
 
@@ -43,21 +43,33 @@ def make_divisible(x: int, divisor: int) -> int:
     return math.ceil(x / divisor) * divisor
 
 
-def check_image_size(image_size: Union[int, List[int]], stride: int = 32, floor: int = 0) -> Union[int, List[int]]:
+def check_image_size(
+  image_size: Union[int, Sequence[int]],
+  stride: int = 32,
+  floor: int = 0,
+  return_same_type: bool = True
+) -> Union[int, Sequence[int]]:
     """check image size to be divisible by stride and not smaller than floor,
     and adjust the size if necessary
 
     :param image_size: (int | list) the original image size
     :param stride: (int) the stride value of the model. default: 32
     :param floor: (int) the minimum allowable size. default: 0
+    :param return_same_type: (bool) whether to return the same type as the input. default: True
     :return: (int | list) the adjusted image size. return the original if no adjustment needed
     """
     if isinstance(image_size, int):  # handle integer value for the original image size
         # compute new size based on the image size, stride and floor values
         new_size = max(make_divisible(image_size, int(stride)), floor)
-    else:  # same as int, but make it be a list of int
+    elif isinstance(image_size, (list, tuple)):  # same as int, but make it be a list of int
         new_size = [max(make_divisible(x, int(stride)), floor) for x in image_size]
+    else:
+        raise Exception(f'Unsupported type of img_size: {type(image_size)}')
     if new_size != image_size:  # if the size is updated
         LOGGER.warning(f'--image-size {image_size} must be multiple of max stride {stride}, updating to {new_size}')
 
-    return new_size
+    if return_same_type:
+        return new_size
+
+    # force return as a list of 2 integers
+    return new_size if isinstance(new_size, (list, tuple)) else [new_size] * 2
